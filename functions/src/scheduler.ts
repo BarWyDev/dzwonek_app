@@ -1,7 +1,7 @@
 import * as functions from 'firebase-functions'
 import * as admin from 'firebase-admin'
 import { Duty } from './types'
-import { getCurrentTime, getTargetTime } from './utils/dateTime'
+import { getTargetTime, getDayName } from './utils/dateTime'
 
 // Funkcja wywoływana co 1 minutę przez Cloud Scheduler
 export const checkUpcomingDuties = functions.pubsub
@@ -9,19 +9,30 @@ export const checkUpcomingDuties = functions.pubsub
   .timeZone('Europe/Warsaw')
   .onRun(async (context) => {
     const now = new Date()
-    const currentDay = now.toLocaleDateString('pl-PL', { weekday: 'long' })
-    const currentTime = getCurrentTime(now)
-
-    // Oblicz czas za 10 minut
+    const currentDay = getDayName(now)
+    
+    // Oblicz czas za 10 minut w strefie PL
     const notificationTime = new Date(now.getTime() + 10 * 60 * 1000)
     const targetTime = getTargetTime(notificationTime)
 
-    console.log(`Checking duties for ${currentDay} at ${targetTime}`)
+    console.log(`Checking duties for ${currentDay} at target time: ${targetTime} (now: ${now.toISOString()})`)
 
     // Pobierz wszystkich użytkowników
     const usersSnapshot = await admin.firestore().collection('users').get()
 
+    // Zabezpieczenie: jeśli liczba użytkowników przekracza 500, zatrzymaj działanie
+    if (usersSnapshot.size > 500) {
+      console.error(`ALERT: Wykryto ${usersSnapshot.size} użytkowników (max: 500). Funkcja wstrzymana.`)
+      return null
+    }
+
     const notifications: Promise<any>[] = []
+
+    // Funkcja do normalizacji czasu (usuwa wiodące zero dla porównania)
+    const normalizeTime = (time: string) => {
+      if (!time) return ''
+      return time.replace(/^0/, '')
+    }
 
     usersSnapshot.forEach((userDoc) => {
       const userData = userDoc.data()
@@ -35,8 +46,8 @@ export const checkUpcomingDuties = functions.pubsub
       const upcomingDuty = schedule.find(
         (duty: Duty) =>
           duty.teacher === teacherName &&
-          duty.day === currentDay &&
-          duty.time === targetTime
+          duty.day.toLowerCase() === currentDay.toLowerCase() &&
+          normalizeTime(duty.time) === normalizeTime(targetTime)
       )
 
       if (upcomingDuty) {
@@ -49,7 +60,7 @@ export const checkUpcomingDuties = functions.pubsub
           token: fcmToken,
           webpush: {
             fcmOptions: {
-              link: 'https://dzwonek.example.com', // TODO: Zmień na właściwy URL
+              link: '/', // Otwiera stronę główną aplikacji
             },
           },
         }

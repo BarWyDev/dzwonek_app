@@ -51,3 +51,12 @@ coverage/
 # Temporary files
 *.tmp
 .cache/
+tmpclaude-*
+
+# Test data files (Excel with real schedule data)
+plan-dyzurow.xlsx
+test-dyzury.xlsx
+*-dyzury.xlsx
+
+# Temporary build artifacts
+dev-dist/

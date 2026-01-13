@@ -5,10 +5,18 @@ import { saveToFirestore } from './firestore'
 
 export async function registerFCMToken(teacherName: string, schedule: Duty[]) {
   try {
+    if (!('Notification' in window)) {
+      throw new Error('Twoja przeglądarka nie obsługuje powiadomień systemowych.')
+    }
+
+    if (Notification.permission === 'denied') {
+      throw new Error('Powiadomienia zostały zablokowane w ustawieniach przeglądarki. Kliknij kłódkę przy adresie URL, aby je odblokować.')
+    }
+
     // Prośba o uprawnienia do powiadomień
     const permission = await Notification.requestPermission()
     if (permission !== 'granted') {
-      throw new Error('Brak uprawnień do powiadomień')
+      throw new Error('Nie wyrażono zgody na powiadomienia. Bez tego aplikacja nie będzie mogła wysyłać przypomnień.')
     }
 
     // Pobranie tokenu FCM

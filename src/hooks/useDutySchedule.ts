@@ -1,6 +1,5 @@
 import { useMemo } from 'react'
 import { useStore } from '../store/useStore'
-import { Duty } from '../types'
 import { isSameDay, getNextDutyTime } from '../utils/dateTime'
 
 export function useDutySchedule() {

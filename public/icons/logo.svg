@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Gradient background -->
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1d4ed8;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="bellGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e0e7ff;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="115" fill="url(#bgGrad)"/>
+
+  <!-- Bell icon -->
+  <g transform="translate(256, 256)">
+    <!-- Bell body -->
+    <path d="M -80 -20 Q -80 -120 0 -140 Q 80 -120 80 -20 L 90 20 Q 90 35 75 35 L -75 35 Q -90 35 -90 20 Z"
+          fill="url(#bellGrad)" stroke="#1e40af" stroke-width="6"/>
+
+    <!-- Bell clapper -->
+    <circle cx="0" cy="50" r="15" fill="#fbbf24" stroke="#f59e0b" stroke-width="3"/>
+    <line x1="0" y1="35" x2="0" y2="35" stroke="#f59e0b" stroke-width="5"/>
+
+    <!-- Bell top mount -->
+    <rect x="-10" y="-150" width="20" height="15" rx="3" fill="#1e40af"/>
+    <circle cx="0" cy="-152" r="8" fill="none" stroke="#1e40af" stroke-width="5"/>
+
+    <!-- Notification dot (top right) -->
+    <circle cx="100" cy="-100" r="35" fill="#ef4444" stroke="#ffffff" stroke-width="6"/>
+
+    <!-- Sound waves -->
+    <path d="M 120 -60 Q 140 -80 140 -100 Q 140 -120 120 -140"
+          fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" opacity="0.6"/>
+    <path d="M 150 -40 Q 180 -70 180 -100 Q 180 -130 150 -160"
+          fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" opacity="0.4"/>
+
+    <path d="M -120 -60 Q -140 -80 -140 -100 Q -140 -120 -120 -140"
+          fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" opacity="0.6"/>
+    <path d="M -150 -40 Q -180 -70 -180 -100 Q -180 -130 -150 -160"
+          fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" opacity="0.4"/>
+  </g>
+</svg>

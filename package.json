@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "emulator": "firebase emulators:start",
-    "deploy:frontend": "pnpm build && sh deployment/deploy-frontend.sh",
+    "deploy:frontend": "pwsh deployment/deploy-frontend.ps1",
+    "deploy:frontend:bash": "sh deployment/deploy-frontend.sh",
     "deploy:functions": "firebase deploy --only functions",
     "deploy:all": "pnpm build && firebase deploy"
   },

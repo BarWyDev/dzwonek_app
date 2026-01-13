@@ -1,0 +1,237 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project Overview
+
+**Dzwonek App** is a Progressive Web App (PWA) for sending duty reminders to teachers. It parses Excel files containing teacher duty schedules and sends push notifications 10 minutes before scheduled duties.
+
+## Tech Stack
+
+### Frontend
+- **React 18 + TypeScript** with Vite build tool
+- **Tailwind CSS** for styling (custom primary color palette)
+- **Zustand** for state management (minimal store in `src/store/useStore.ts`)
+- **SheetJS (xlsx)** for Excel parsing
+- **Firebase SDK** (Firestore, Cloud Messaging)
+- **vite-plugin-pwa** with Workbox for PWA/offline functionality
+
+### Backend
+- **Firebase Cloud Functions** (Node.js 18 + TypeScript)
+- **Firebase Firestore** NoSQL database
+- **Firebase Cloud Messaging (FCM)** for push notifications
+- **Cloud Scheduler** runs `checkUpcomingDuties` every 1 minute (Europe/Warsaw timezone)
+
+## Common Commands
+
+### Development
+```bash
+# Install dependencies (frontend)
+pnpm install
+
+# Start dev server (frontend, runs on port 3000)
+pnpm dev
+
+# Build production frontend
+pnpm build
+
+# Lint TypeScript code
+pnpm lint
+
+# Preview production build
+pnpm preview
+```
+
+### Firebase Functions
+```bash
+# Install function dependencies
+cd functions && npm install && cd ..
+
+# Build functions
+cd functions && npm run build && cd ..
+
+# Watch mode for functions development
+cd functions && npm run build:watch
+
+# Start Firebase emulators (Functions + Firestore)
+pnpm emulator
+# OR
+firebase emulators:start
+```
+
+### Deployment
+```bash
+# Deploy only frontend (to mikr.us VPS via deployment script)
+pnpm deploy:frontend
+
+# Deploy only Firebase Functions
+pnpm deploy:functions
+# OR
+firebase deploy --only functions
+
+# Deploy everything (build + Firebase)
+pnpm deploy:all
+```
+
+## Architecture
+
+### Data Flow
+1. User uploads Excel file → parsed client-side by `src/services/excelParser.ts`
+2. User selects teacher name → stored in Zustand + localStorage + Firestore
+3. FCM token registered → stored in Firestore `users` collection
+4. Cloud Function `checkUpcomingDuties` runs every 1 minute
+5. Function queries Firestore for users with duties in 10 minutes
+6. FCM sends push notification to matching devices
+
+### Key Files
+
+**Frontend:**
+- `src/services/excelParser.ts` - Excel parsing logic (complex day/column mapping)
+- `src/store/useStore.ts` - Zustand global state
+- `src/services/fcm.ts` - FCM token registration
+- `src/services/firestore.ts` - Firestore interactions
+- `src/services/storage.ts` - localStorage helpers
+- `src/types/index.ts` - TypeScript interfaces (Duty, Teacher, AppConfig, NotificationPayload)
+
+**Backend:**
+- `functions/src/scheduler.ts` - Main Cloud Function (1-min cron job)
+- `functions/src/notifications.ts` - Notification sending logic
+- `functions/src/types.ts` - Backend TypeScript types
+- `functions/src/utils/dateTime.ts` - Time utilities for Poland timezone
+
+**Config:**
+- `vite.config.ts` - Vite + PWA plugin configuration
+- `firebase.json` - Firebase hosting & functions config
+- `tailwind.config.js` - Tailwind customization (primary blue palette)
+- `.env` - Firebase credentials (NOT committed, see `.env.example`)
+
+### State Management
+
+Zustand store (`useStore.ts`) manages:
+- `teacherName`: Selected teacher
+- `schedule`: Parsed duty array
+- `teachers`: List of unique teacher names
+- `fcmToken`: Firebase Cloud Messaging token
+
+State persists to localStorage on changes and loads on app initialization.
+
+### Excel Parser Specifics
+
+The parser in `src/services/excelParser.ts` expects a specific Excel format:
+- Sheet name "DYŻURY" (or uses first sheet)
+- Days in columns: Poniedziałek (4-6), Wtorek (7-9), Środa (10-12), Czwartek (13-14), Piątek (16-18)
+- Row 1-2: Headers
+- Starting row 3: duty data with columns:
+  - Col 1: Break number
+  - Col 2: Time range (e.g., "7:00-7:30")
+  - Col 3: Location (room or floor number 0-2)
+  - Cols 4+: Teacher names for each day
+
+**IMPORTANT:** If Excel structure changes, update `DAY_COLUMNS` mapping in `excelParser.ts`.
+
+### Firebase Collections
+
+**users** (Firestore):
+```typescript
+{
+  fcmToken: string,
+  teacherName: string,
+  schedule: Duty[],
+  createdAt: Date
+}
+```
+
+Document ID is the FCM token (used for anonymous identification).
+
+**schedules** (optional, currently unused):
+```typescript
+{
+  duties: Duty[],
+  uploadDate: Date
+}
+```
+
+### Notification Timing
+
+Cloud Function `checkUpcomingDuties`:
+1. Runs every 1 minute in Europe/Warsaw timezone
+2. Calculates target time = current time + 10 minutes
+3. Queries users with duties matching: `duty.day === currentDay && duty.time === targetTime`
+4. Sends FCM notification: "Za 10 min: dyżur {location}"
+
+## PWA Considerations
+
+### iOS Safari
+- Requires adding PWA to home screen for notifications to work
+- `IOSInstallPrompt` component shows instructions to iOS users
+- Detects iOS via `navigator.userAgent`
+
+### Service Worker
+- Auto-generated by `vite-plugin-pwa`
+- Caches all static assets
+- NetworkFirst strategy for Firestore requests (24h cache)
+- NetworkOnly for FCM endpoints
+- Service worker cache headers set in `firebase.json`
+
+## Firebase Configuration
+
+**Environment variables** (`.env`):
+```
+VITE_FIREBASE_API_KEY=
+VITE_FIREBASE_AUTH_DOMAIN=
+VITE_FIREBASE_PROJECT_ID=
+VITE_FIREBASE_STORAGE_BUCKET=
+VITE_FIREBASE_MESSAGING_SENDER_ID=
+VITE_FIREBASE_APP_ID=
+VITE_FIREBASE_VAPID_KEY=
+```
+
+**Firebase project ID** in `.firebaserc` - update this to match your Firebase project.
+
+## Deployment Notes
+
+### Frontend (mikr.us VPS)
+- Build output: `dist/`
+- Deploy script: `deployment/deploy-frontend.sh` (requires SSH config)
+- Nginx config: `deployment/nginx.conf` (handles SPA routing, SW cache headers)
+- HTTPS via Let's Encrypt (Certbot)
+
+### Backend (Firebase)
+- Functions predeploy hook: `npm --prefix functions run build`
+- Runtime: Node.js 18
+- Firestore rules: `firebase/firestore.rules`
+- Firestore indexes: `firebase/firestore.indexes.json`
+
+## Testing
+
+Currently no test suite configured. To add tests:
+- Use Vitest for unit tests (compatible with Vite)
+- React Testing Library for component tests
+- Firebase Emulator Suite for backend tests
+
+## Common Issues
+
+### Excel Parser Not Working
+- Verify Excel structure matches expected format in `excelParser.ts`
+- Check console logs: parser outputs "Sparsowano X dyżurów"
+- Update `DAY_COLUMNS` mapping if column layout changed
+
+### Notifications Not Sending
+- Verify VAPID key in `.env` matches Firebase Console
+- Check FCM token registered in Firestore
+- Verify iOS users added PWA to home screen
+- Check Cloud Function logs: `firebase functions:log`
+- Ensure Cloud Scheduler is enabled and running
+
+### TypeScript Build Errors
+- Frontend: `pnpm build` runs `tsc && vite build`
+- Functions: Build happens in predeploy hook
+- Check `tsconfig.json` and `functions/tsconfig.json` for compiler options
+
+## Code Style
+
+- TypeScript strict mode enabled
+- ESLint configured with React and TypeScript rules
+- Tailwind utility classes preferred over custom CSS
+- Component files use `.tsx`, utilities use `.ts`
+- All times handled in Europe/Warsaw timezone (Poland)

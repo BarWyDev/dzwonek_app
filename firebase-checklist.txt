@@ -1,0 +1,70 @@
+🔥 FIREBASE SETUP CHECKLIST
+==========================
+
+KROK 1: Firebase Console
+-------------------------
+[ ] Zalogowałem się do https://console.firebase.google.com/
+[ ] Utworzyłem projekt "dzwonek-app"
+[ ] Wyłączyłem Google Analytics
+[ ] Zapisałem Project ID (np. dzwonek-app-xxxxx)
+
+KROK 2: Web App
+---------------
+[ ] Kliknąłem ikonę </> (Web)
+[ ] Zarejestrowałem app "dzwonek-app-web"
+[ ] Zaznaczyłem "Set up Firebase Hosting"
+[ ] SKOPIOWAŁEM wszystkie wartości firebaseConfig:
+    [ ] apiKey
+    [ ] authDomain
+    [ ] projectId
+    [ ] storageBucket
+    [ ] messagingSenderId
+    [ ] appId
+    [ ] measurementId (jeśli jest)
+
+KROK 3: Firestore
+-----------------
+[ ] Build → Firestore Database
+[ ] Create database
+[ ] Production mode
+[ ] Region: europe-west3 (Frankfurt)
+[ ] Enable - poczekałem aż się utworzy
+
+KROK 4: VAPID Key
+-----------------
+[ ] ⚙️ Settings → Project settings
+[ ] Cloud Messaging tab
+[ ] Web Push certificates
+[ ] Generate key pair
+[ ] SKOPIOWAŁEM długi string (B...)
+
+KROK 5: Pliki lokalne
+---------------------
+[ ] Otworzyłem plik .env
+[ ] Wkleiłem wszystkie wartości z Firebase
+[ ] Sprawdziłem - brak spacji przed/po wartościach
+[ ] Otworzyłem plik .firebaserc
+[ ] Wkleiłem Project ID
+
+KROK 6: Firebase CLI
+--------------------
+[ ] npm install -g firebase-tools
+[ ] firebase login
+[ ] Zalogowałem się przez przeglądarkę
+[ ] Zobaczyłem "Success! Logged in as..."
+
+KROK 7: Deploy
+--------------
+[ ] firebase deploy --only firestore
+[ ] Zobaczyłem "Deploy complete!"
+
+TEST: Sprawdzenie
+-----------------
+[ ] pnpm dev
+[ ] Aplikacja otworzyła się na localhost:3000
+[ ] Wgrałem plik Excel
+[ ] Wybrałem nauczyciela
+[ ] Zezwoliłem na powiadomienia
+[ ] W Firebase Console → Firestore widzę kolekcję "users"
+
+✅ WSZYSTKO DZIAŁA!

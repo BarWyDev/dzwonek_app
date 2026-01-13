@@ -1,6 +1,22 @@
 import * as XLSX from 'xlsx'
 import { Duty } from '../types'
 
+/**
+ * Parser dla pliku Excel z dyżurami w formacie:
+ * - Dni tygodnia w kolumnach (Poniedziałek, Wtorek, Środa, Czwartek, Piątek)
+ * - Każdy wiersz = jedna przerwa z godziną i lokalizacją
+ * - Nauczyciele dla każdego dnia w odpowiednich kolumnach
+ */
+
+// Mapowanie dni tygodnia do indeksów kolumn (bazując na analizie pliku)
+const DAY_COLUMNS = {
+  'Poniedziałek': [4, 5, 6],  // Kolumny dla nauczycieli w poniedziałek
+  'Wtorek': [7, 8, 9],
+  'Środa': [10, 11, 12],
+  'Czwartek': [13, 14, 15],
+  'Piątek': [16, 17, 18],
+}
+
 export async function parseExcel(file: File): Promise<Duty[]> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
@@ -10,40 +26,92 @@ export async function parseExcel(file: File): Promise<Duty[]> {
         const data = e.target?.result
         const workbook = XLSX.read(data, { type: 'binary' })
 
-        // Zakładając, że dane są w pierwszym arkuszu
-        const sheetName = workbook.SheetNames[0]
+        // Znajdź arkusz "DYŻURY" lub użyj pierwszego
+        const sheetName = workbook.SheetNames.find(name => name === 'DYŻURY') || workbook.SheetNames[0]
+
+        if (!sheetName) {
+          reject(new Error('Plik Excel nie zawiera żadnych arkuszy'))
+          return
+        }
+
         const sheet = workbook.Sheets[sheetName]
 
-        // Konwersja do JSON
-        const jsonData = XLSX.utils.sheet_to_json(sheet)
+        // Konwersja do surowej tablicy (bez nagłówków)
+        const rawData: any[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' })
 
-        // Parsowanie według szablonu (DO DOSTOSOWANIA!)
         const duties: Duty[] = []
+        let dutyIdCounter = 0
+        
+        let currentBreakNumber = ''
+        let currentStartTime = ''
 
-        // PRZYKŁAD: iteracja po wierszach i kolumnach
-        // Struktura będzie zależeć od rzeczywistego szablonu Excel
-        jsonData.forEach((row: any, index: number) => {
-          // Logika parsowania zależna od struktury pliku
-          // Np. jeśli kolumny to: Dzień | Przerwa | Lokalizacja | Nauczyciel | Godzina
-          if (row['Nauczyciel'] && row['Dzień'] && row['Przerwa']) {
-            duties.push({
-              id: `duty-${index}`,
-              day: row['Dzień'] || '',
-              break: row['Przerwa'] || '',
-              location: row['Lokalizacja'] || row['Miejsce'] || '',
-              teacher: row['Nauczyciel'] || '',
-              time: row['Godzina'] || row['Czas'] || '',
+        // Iteruj przez wiersze zaczynając od wiersza 2 (indeks 2)
+        // Wiersz 0 i 1 to nagłówki
+        for (let rowIndex = 2; rowIndex < rawData.length; rowIndex++) {
+          const row = rawData[rowIndex]
+
+          // Kolumna 1: numer przerwy (może być pusta jeśli to kolejna lokalizacja dla tej samej przerwy)
+          // Kolumna 2: godzina (np. "7:00-7:30")
+          // Kolumna 3: lokalizacja (np. "s.3,4" lub "0" dla piętra)
+          const breakNumber = row[1]
+          const timeRange = row[2]
+          let location = row[3]
+
+          // Aktualizuj bieżącą przerwę i czas jeśli są podane
+          if (breakNumber && breakNumber !== '') {
+            currentBreakNumber = breakNumber.toString()
+          }
+          
+          if (timeRange && typeof timeRange === 'string') {
+            const match = timeRange.match(/(\d{1,2}:\d{2})/)
+            if (match) {
+              currentStartTime = match[1]
+            }
+          }
+
+          // Jeśli nie mamy jeszcze przerwy ani czasu, pomiń
+          if (!currentBreakNumber || !currentStartTime) continue
+
+          // Jeśli lokalizacja to liczba (0, 1, 2), oznacza to piętro
+          if (location === 0 || location === 1 || location === 2 || location === '0' || location === '1' || location === '2') {
+            location = `Piętro ${location}`
+          }
+
+          // Sprawdź czy mamy jakąkolwiek lokalizację
+          const finalLocation = location || 'Nieznana lokalizacja'
+
+          // Dla każdego dnia tygodnia
+          for (const [day, columns] of Object.entries(DAY_COLUMNS)) {
+            // Sprawdź nauczycieli w kolumnach tego dnia
+            const teachers = columns
+              .map(colIndex => row[colIndex])
+              .filter(teacher => teacher && teacher !== '' && typeof teacher === 'string')
+
+            // Dla każdego nauczyciela utwórz osobny wpis dyżuru
+            teachers.forEach(teacher => {
+              duties.push({
+                id: `duty-${dutyIdCounter++}`,
+                day,
+                break: `Przerwa ${currentBreakNumber}`,
+                location: finalLocation,
+                teacher: teacher.trim(),
+                time: currentStartTime,
+              })
             })
           }
-        })
+        }
+
+        console.log(`Sparsowano ${duties.length} dyżurów`)
 
         if (duties.length === 0) {
-          reject(new Error('Nie znaleziono dyżurów w pliku'))
+          reject(new Error('Nie znaleziono dyżurów w pliku. Sprawdź czy to właściwy plik Excel.'))
+          return
         }
 
         resolve(duties)
       } catch (error) {
-        reject(new Error('Błąd parsowania pliku Excel'))
+        console.error('Błąd parsowania pliku Excel:', error)
+        reject(new Error(`Błąd parsowania pliku Excel: ${error instanceof Error ? error.message : 'Nieznany błąd'}`))
       }
     }
 

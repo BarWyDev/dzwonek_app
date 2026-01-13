@@ -1,11 +1,27 @@
 export function getCurrentTime(date: Date): string {
-  return date.toTimeString().slice(0, 5) // "HH:MM"
+  return date.toLocaleTimeString('pl-PL', {
+    timeZone: 'Europe/Warsaw',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  })
 }
 
 export function getTargetTime(date: Date): string {
-  const hours = date.getHours().toString().padStart(2, '0')
-  const minutes = date.getMinutes().toString().padStart(2, '0')
-  return `${hours}:${minutes}`
+  return date.toLocaleTimeString('pl-PL', {
+    timeZone: 'Europe/Warsaw',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  })
+}
+
+export function getDayName(date: Date): string {
+  const dayName = date.toLocaleDateString('pl-PL', {
+    timeZone: 'Europe/Warsaw',
+    weekday: 'long'
+  })
+  return dayName.charAt(0).toUpperCase() + dayName.slice(1)
 }
 
 export function formatDateTime(date: Date): string {
