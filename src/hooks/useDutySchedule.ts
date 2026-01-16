@@ -1,9 +1,21 @@
-import { useMemo } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { useStore } from '../store/useStore'
 import { isSameDay, getNextDutyTime } from '../utils/dateTime'
 
 export function useDutySchedule() {
   const { teacherName, schedule } = useStore()
+  // Dodajemy timestamp, który będzie aktualizowany co minutę
+  // aby wymusić przeliczenie nextDuty i todayDuties
+  const [currentTime, setCurrentTime] = useState(Date.now())
+
+  useEffect(() => {
+    // Aktualizuj co 60 sekund
+    const interval = setInterval(() => {
+      setCurrentTime(Date.now())
+    }, 60000)
+
+    return () => clearInterval(interval)
+  }, [])
 
   const myDuties = useMemo(() => {
     if (!teacherName) return []
@@ -17,7 +29,7 @@ export function useDutySchedule() {
       const dutyDate = getNextDutyTime(duty.day, duty.time)
       return isSameDay(dutyDate, today)
     })
-  }, [myDuties])
+  }, [myDuties, currentTime]) // Dodano currentTime do dependencies
 
   const nextDuty = useMemo(() => {
     const now = new Date()
@@ -30,7 +42,7 @@ export function useDutySchedule() {
       .sort((a, b) => a.date.getTime() - b.date.getTime())
 
     return upcomingDuties[0] || null
-  }, [myDuties])
+  }, [myDuties, currentTime]) // Dodano currentTime do dependencies
 
   const timeUntilNext = () => {
     if (!nextDuty) return 0

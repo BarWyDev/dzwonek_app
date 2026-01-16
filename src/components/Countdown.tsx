@@ -34,7 +34,7 @@ export default function Countdown() {
     const seconds = Math.floor((ms % (1000 * 60)) / 1000)
 
     if (hours > 0) {
-      return `${hours}h ${minutes}m`
+      return `${hours}h ${minutes}m ${seconds}s`
     }
     if (minutes > 0) {
       return `${minutes}m ${seconds}s`

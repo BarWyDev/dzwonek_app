@@ -17,6 +17,22 @@ const DAY_COLUMNS = {
   'Piątek': [16, 17, 18],
 }
 
+/**
+ * Normalizuje nazwisko:
+ * - usuwa nadmiarowe spacje
+ * - ujednolica spacje wokół myślników (usuwa spacje)
+ * - zamienia wielokrotne spacje na pojedyncze
+ */
+export function normalizeTeacherName(name: string): string {
+  return name
+    .trim()
+    // Zamień myślniki ze spacjami na myślnik bez spacji
+    .replace(/\s*-\s*/g, '-')
+    // Usuń wielokrotne spacje
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 export async function parseExcel(file: File): Promise<Duty[]> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
@@ -89,14 +105,26 @@ export async function parseExcel(file: File): Promise<Duty[]> {
 
             // Dla każdego nauczyciela utwórz osobny wpis dyżuru
             teachers.forEach(teacher => {
-              duties.push({
-                id: `duty-${dutyIdCounter++}`,
-                day,
-                break: `Przerwa ${currentBreakNumber}`,
-                location: finalLocation,
-                teacher: teacher.trim(),
-                time: currentStartTime,
-              })
+              const normalizedTeacher = normalizeTeacherName(teacher)
+              
+              // Sprawdź czy już nie mamy identycznego dyżuru (duplikat w Excel)
+              const isDuplicate = duties.some(
+                d => d.day === day && 
+                     d.time === currentStartTime && 
+                     d.location === finalLocation && 
+                     d.teacher === normalizedTeacher
+              )
+              
+              if (!isDuplicate) {
+                duties.push({
+                  id: `duty-${dutyIdCounter++}`,
+                  day,
+                  break: `Przerwa ${currentBreakNumber}`,
+                  location: finalLocation,
+                  teacher: normalizedTeacher,
+                  time: currentStartTime,
+                })
+              }
             })
           }
         }
@@ -122,6 +150,19 @@ export async function parseExcel(file: File): Promise<Duty[]> {
 
 // Ekstrakcja unikalnych nazwisk
 export function getUniqueTeachers(duties: Duty[]): string[] {
-  const teachers = duties.map((d) => d.teacher)
-  return [...new Set(teachers)].sort()
+  const normalizedMap = new Map<string, string>()
+  
+  // Dla każdego nauczyciela znajdź znormalizowaną wersję
+  duties.forEach((duty) => {
+    const normalized = normalizeTeacherName(duty.teacher)
+    // Zachowaj pierwszą wersję jako kanoniczną
+    if (!normalizedMap.has(normalized)) {
+      normalizedMap.set(normalized, duty.teacher)
+    }
+  })
+  
+  // Zwróć posortowane unikalne nazwiska
+  return Array.from(normalizedMap.values())
+    .map(normalizeTeacherName)
+    .sort()
 }
