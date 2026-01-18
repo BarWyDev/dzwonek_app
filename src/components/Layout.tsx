@@ -18,7 +18,7 @@ export default function Layout({ children }: LayoutProps) {
       <footer className="bg-white border-t border-gray-200 mt-auto">
         <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
           <p className="text-center text-gray-600 text-sm">
-            Stworzone z <span className="text-red-500 animate-pulse inline-block">❤️</span> do żony
+            Stworzone z <span className="text-red-500 animate-pulse inline-block">❤️</span> do żony barwy
           </p>
         </div>
       </footer>
