@@ -2,6 +2,7 @@ import * as functions from 'firebase-functions'
 import * as admin from 'firebase-admin'
 import { Duty } from './types'
 import { getTargetTime, getDayName } from './utils/dateTime'
+import { removeInvalidFCMToken } from './cleanup'
 
 // Funkcja wywoływana co 1 minutę przez Cloud Scheduler
 export const checkUpcomingDuties = functions.pubsub
@@ -59,8 +60,13 @@ export const checkUpcomingDuties = functions.pubsub
           },
           token: fcmToken,
           webpush: {
+            notification: {
+              title: 'Przypomnienie o dyżurze',
+              body: `Za 10 min: dyżur ${upcomingDuty.location}`,
+              icon: '/icons/icon-192x192.png',
+            },
             fcmOptions: {
-              link: '/', // Otwiera stronę główną aplikacji
+              link: 'https://dzwonek.byst.re/',
             },
           },
         }
@@ -69,10 +75,21 @@ export const checkUpcomingDuties = functions.pubsub
           admin
             .messaging()
             .send(message)
-            .then(() => console.log(`Powiadomienie wysłane do ${teacherName}`))
-            .catch((error) =>
-              console.error(`Błąd wysyłania do ${teacherName}:`, error)
-            )
+            .then(() => console.log(`✅ Powiadomienie wysłane do ${teacherName}`))
+            .catch(async (error: any) => {
+              console.error(`❌ Błąd wysyłania do ${teacherName}:`, error.code || error.message)
+
+              // Usuń nieprawidłowy token FCM
+              const errorCode = error?.code || error?.errorInfo?.code
+              if (
+                errorCode === 'messaging/invalid-registration-token' ||
+                errorCode === 'messaging/registration-token-not-registered' ||
+                errorCode === 'messaging/invalid-argument'
+              ) {
+                console.log(`🗑️ Usuwam nieprawidłowy token dla ${teacherName}`)
+                await removeInvalidFCMToken(fcmToken)
+              }
+            })
         )
       }
     })

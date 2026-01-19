@@ -4,5 +4,5 @@ admin.initializeApp()
 
 export { checkUpcomingDuties } from './scheduler'
 export { sendNotification } from './notifications'
-export { testNotification, listUsers } from './testNotifications'
+export { testNotification, listUsers, debugSchedule } from './testNotifications'
 export { cleanupOldData } from './cleanup'

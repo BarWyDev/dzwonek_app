@@ -1,9 +1,9 @@
 # Deploy frontend na mikr.us VPS (PowerShell dla Windows)
-# INSTRUKCJA: Zaktualizuj poniższe zmienne swoimi danymi z mikr.us
+# VPS: florian114 | Serwer: florian114.mikrus.xyz
 
-$SERVER_USER = "u123"              # 👈 Twój login z emaila mikr.us (np. u123)
-$SERVER_HOST = "frog01.mikr.us"    # 👈 Hostname z emaila (np. srv03.mikr.us, frog01.mikr.us)
-$SERVER_PORT = "10123"             # 👈 Port SSH: 10000 + numer maszyny (np. 10123)
+$SERVER_USER = "root"                        # Login mikr.us
+$SERVER_HOST = "florian114.mikrus.xyz"       # Hostname serwera
+$SERVER_PORT = "10114"                       # Port SSH
 $SERVER_PATH = "/var/www/dzwonek-app"
 
 Write-Host "🔨 Building frontend..." -ForegroundColor Cyan

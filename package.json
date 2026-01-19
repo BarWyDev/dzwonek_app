@@ -10,8 +10,9 @@
     "preview": "vite preview",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "emulator": "firebase emulators:start",
-    "deploy": "pwsh deploy.ps1",
     "deploy:frontend": "pwsh deployment/deploy-frontend.ps1",
+    "deploy:frontend:winscp": "pwsh deployment/deploy-winscp.ps1",
+    "deploy:frontend:plink": "pwsh deployment/deploy-plink.ps1",
     "deploy:frontend:bash": "sh deployment/deploy-frontend.sh",
     "deploy:functions": "firebase deploy --only functions",
     "deploy:all": "pnpm build && firebase deploy"

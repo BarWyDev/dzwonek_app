@@ -1,0 +1,77 @@
+╔═══════════════════════════════════════════════════════════════╗
+║                                                               ║
+║   🚀 DEPLOYMENT DZWONEK APP - START TUTAJ                     ║
+║   VPS: florian114 | Serwer: florian114.mikrus.xyz            ║
+║                                                               ║
+╚═══════════════════════════════════════════════════════════════╝
+
+⚡ PIERWSZE URUCHOMIENIE (10 MINUT):
+
+┌─────────────────────────────────────────────────────────────┐
+│  ⭐ PIERWSZE-URUCHOMIENIE.md                                 │
+│  Gotowe komendy do skopiowania - 10 minut                   │
+│  1. Zmień hasło (2 min)                                      │
+│  2. Skonfiguruj SSH (3 min)                                  │
+│  3. Pierwszy deployment (5 min)                              │
+│  → ZACZNIJ TUTAJ! ←                                          │
+└─────────────────────────────────────────────────────────────┘
+
+📋 TWOJE DANE:
+
+  TWOJE-DANE-MIKRUS.md      ← Dane dostępowe i gotowe komendy
+
+🔐 TWÓJ DOSTĘP:
+
+  Login:      root
+  Serwer:     florian114.mikrus.xyz
+  Port SSH:   10114
+  Hasło:      [sprawdź w TWOJE-DANE-MIKRUS.md lub emailu od mikr.us]
+
+💡 GOTOWE KOMENDY (po konfiguracji SSH):
+
+  Logowanie na serwer (BEZ hasła):
+  > ssh root@florian114.mikrus.xyz -p 10114
+
+  Deploy aplikacji (BEZ hasła):
+  > cd C:\Users\bwysocki\dzwonek_app
+  > pnpm deploy:frontend
+
+  Deploy funkcji Firebase:
+  > pnpm deploy:functions
+
+📚 PEŁNA DOKUMENTACJA:
+
+  PIERWSZE-URUCHOMIENIE.md  ← START (gotowe komendy)
+  TWOJE-DANE-MIKRUS.md      ← Twoje dane i aliasy
+  SSH-SETUP-GUIDE.md        ← Przewodnik SSH szczegółowy
+  SSH-CHEATSHEET.md         ← Szybka ściągawka
+  README-DEPLOYMENT.md      ← Mapa dokumentacji
+  DEPLOYMENT-OPTIONS.md     ← Porównanie metod
+  DEPLOYMENT-MIKRUS.md      ← Konfiguracja serwera
+
+🎯 PLAN DZIAŁANIA (10 MINUT):
+
+  1. Otwórz: PIERWSZE-URUCHOMIENIE.md
+  2. Skopiuj i wklej komendy z KROK 1-4
+  3. Gotowe! Masz automatyczny deployment! 🎉
+
+🆘 PROBLEMY?
+
+  Zobacz sekcję "Troubleshooting" w:
+  - PIERWSZE-URUCHOMIENIE.md (szybkie rozwiązania)
+  - SSH-SETUP-GUIDE.md (szczegółowe rozwiązania)
+  - DEPLOYMENT-MIKRUS.md (problemy serwera)
+
+══════════════════════════════════════════════════════════════
+
+📂 Twoje pliki:
+
+  Skrypty:      deployment/deploy-frontend.ps1 (już gotowy!)
+  Dokumentacja: PIERWSZE-URUCHOMIENIE.md (START TUTAJ!)
+  Dane:         TWOJE-DANE-MIKRUS.md
+
+══════════════════════════════════════════════════════════════
+
+✅ WSZYSTKO GOTOWE - SKRYPTY ZAKTUALIZOWANE Z TWOIMI DANYMI!
+
+Powodzenia! 🚀

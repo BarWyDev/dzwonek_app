@@ -60,3 +60,9 @@ test-dyzury.xlsx
 
 # Temporary build artifacts
 dev-dist/
+
+# Private deployment data (contains passwords and server info)
+TWOJE-DANE-MIKRUS.md
+
+# Temporary/error files
+nul
