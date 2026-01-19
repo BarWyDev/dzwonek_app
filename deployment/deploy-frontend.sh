@@ -17,12 +17,20 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "📦 Deploying to mikr.us ($SERVER_HOST)..."
+
+# Usuń stare pliki assets (żeby nie zajmowały miejsca)
+ssh -p $SERVER_PORT $SERVER_USER@$SERVER_HOST "rm -rf $SERVER_PATH/assets/*"
+
+# Upload nowych plików
 scp -P $SERVER_PORT -r dist/* $SERVER_USER@$SERVER_HOST:$SERVER_PATH/
 
 if [ $? -ne 0 ]; then
     echo "❌ Deployment failed!"
     exit 1
 fi
+
+echo "🔧 Setting permissions..."
+ssh -p $SERVER_PORT $SERVER_USER@$SERVER_HOST "chmod -R 755 $SERVER_PATH && chmod 644 $SERVER_PATH/assets/*.js $SERVER_PATH/assets/*.css"
 
 echo "🔄 Reloading nginx..."
 ssh -p $SERVER_PORT $SERVER_USER@$SERVER_HOST "service nginx reload"
